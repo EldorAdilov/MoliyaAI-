@@ -39,6 +39,8 @@ ALLOWED_HOSTS = ['*']
 CSRF_TRUSTED_ORIGINS = [
     'https://moliyaai-production.up.railway.app',
     'https://*.up.railway.app',
+    'https://*.upcode.uz',
+    'https://upcode.uz',
 ]
 
 

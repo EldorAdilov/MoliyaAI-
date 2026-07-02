@@ -3,7 +3,7 @@ from .views import (register_view, login_view, logout_view,
                     dashboard_view, get_ai_analysis, wallets_view,
                     transactions_view, settings_view, get_ai_forecast, ai_analysis_page_view,
                     debts_view, forget_password_view,
-                    api_login_view, api_transactions_view, api_summary_view)
+                    api_login_view, api_verify_otp_view, api_transactions_view, api_summary_view)
 
 urlpatterns = [
     path('register/', register_view, name='register'),
@@ -13,6 +13,7 @@ urlpatterns = [
 
     # Mobile/Native App API endpoints
     path('api/login/', api_login_view, name='api_login'),
+    path('api/login/verify/', api_verify_otp_view, name='api_verify_otp'),
     path('api/transactions/mobile/', api_transactions_view, name='api_transactions_mobile'),
     path('api/summary/', api_summary_view, name='api_summary'),
 

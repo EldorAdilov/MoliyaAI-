@@ -660,6 +660,12 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth.models import User
 from .models import Transaction, Category
 
+import random
+from django.core.mail import send_mail
+from django.utils import timezone
+from datetime import timedelta
+from .models import UserProfile
+
 @csrf_exempt
 def api_login_view(request):
     if request.method != 'POST':
@@ -671,17 +677,70 @@ def api_login_view(request):
         
         user = authenticate(request, username=username, password=password)
         if user is not None:
-            login(request, user)
-            return JsonResponse({
-                'success': True,
-                'username': user.username,
-                'email': user.email,
-                'user_id': user.id
-            })
+            # Generate 6-digit OTP
+            otp = f"{random.randint(100000, 999999)}"
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+            profile.login_otp = otp
+            profile.login_otp_expiry = timezone.now() + timedelta(minutes=10)
+            profile.save()
+            
+            # Send confirmation email
+            subject = "MoliyaAI — Qurilmani tasdiqlash kodi"
+            message = f"Salom {user.username}!\n\nMoliyaAI mobil ilovasiga kirish uchun tasdiqlash kodingiz: {otp}\nUshbu kod 10 daqiqa davomida faol."
+            from_email = "MoliyaAI <noreply@upcode.uz>"
+            recipient_list = [user.email]
+            
+            try:
+                send_mail(subject, message, from_email, recipient_list, fail_silently=False)
+                return JsonResponse({
+                    'success': True,
+                    'otp_sent': True,
+                    'message': 'Tasdiqlash kodi elektron pochtangizga yuborildi!'
+                })
+            except Exception as mail_err:
+                return JsonResponse({
+                    'success': False,
+                    'error': f"Tasdiqlash kodini emailga yuborib bo'lmadi: {str(mail_err)}"
+                }, status=500)
         else:
             return JsonResponse({'success': False, 'error': 'Xato username yoki parol!'}, status=400)
     except Exception as e:
         return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+def api_verify_otp_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        otp = data.get('otp')
+        
+        try:
+            user = User.objects.get(username=username)
+        except User.DoesNotExist:
+            return JsonResponse({'success': False, 'error': 'Foydalanuvchi topilmadi!'}, status=400)
+            
+        profile = getattr(user, 'profile', None)
+        if profile is not None and profile.login_otp == otp:
+            if profile.login_otp_expiry and timezone.now() < profile.login_otp_expiry:
+                profile.login_otp = None  # Clear OTP
+                profile.save()
+                
+                login(request, user)
+                return JsonResponse({
+                    'success': True,
+                    'username': user.username,
+                    'email': user.email,
+                    'user_id': user.id
+                })
+            else:
+                return JsonResponse({'success': False, 'error': 'Tasdiqlash kodining muddati tugagan!'}, status=400)
+        else:
+            return JsonResponse({'success': False, 'error': 'Noto\'g\'ri tasdiqlash kodi!'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
 
 @csrf_exempt
 def api_transactions_view(request):

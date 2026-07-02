@@ -10,6 +10,8 @@ class UserProfile(models.Model):
     initial_debt = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     phone_number = models.CharField(max_length=20, blank=True, null=True, unique=True)
     telegram_chat_id = models.CharField(max_length=50, blank=True, null=True, unique=True)
+    login_otp = models.CharField(max_length=6, blank=True, null=True)
+    login_otp_expiry = models.DateTimeField(blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.username} - Profili"

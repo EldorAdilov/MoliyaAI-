@@ -151,13 +151,14 @@
                 bottom: 0;
                 left: 0;
                 width: 100%;
-                height: 65px;
-                background: rgba(11, 15, 25, 0.85);
+                height: 75px;
+                background: rgba(11, 15, 25, 0.88);
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
-                backdrop-filter: blur(20px);
-                -webkit-backdrop-filter: blur(20px);
+                backdrop-filter: blur(25px);
+                -webkit-backdrop-filter: blur(25px);
                 z-index: 1000;
-                padding-bottom: env(safe-area-inset-bottom);
+                padding-top: 8px;
+                padding-bottom: calc(env(safe-area-inset-bottom) + 8px);
             }
 
             .bottom-nav-item {
@@ -169,7 +170,7 @@
                 text-decoration: none;
                 font-size: 11px;
                 font-weight: 500;
-                gap: 4px;
+                gap: 5px;
                 flex: 1;
                 height: 100%;
                 transition: 0.3s;
@@ -184,9 +185,11 @@
                 text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
             }
 
-            /* Adjust main content padding-bottom so it doesn't get hidden under bottom-nav */
+            /* Adjust main content padding so it doesn't get hidden under header/footer navs */
             .main-content {
-                padding-bottom: 90px !important;
+                margin-left: 0;
+                width: 100%;
+                padding: 30px 20px 115px 20px !important;
             }
             
             /* Hide the mobile nav drawer hamburger menu toggle since navigation is now at bottom */

@@ -309,7 +309,11 @@ def handle_ai_request(message):
             debt_status = ""
             if t.is_debt:
                 status = "Yopilgan" if t.is_debt_cleared else "Faol"
-                debt_status = f" | [QARZ: {status}, Kimga/Kimdan: {t.debtor_creditor or 'Nomalum'}, Muddati: {t.debt_due_date or 'Nomalum'}]"
+                if t.transaction_type == 'INCOME':
+                    debt_type = f"Olingan qarz (Menga qarz berishgan / Boshqadan qarz olganman, kimdan: {t.debtor_creditor or 'Nomalum'})"
+                else:
+                    debt_type = f"Berilgan qarz (Men qarz berganman / Boshqa odam menga qaytarishi kerak, kimga: {t.debtor_creditor or 'Nomalum'})"
+                debt_status = f" | [Turi: {debt_type}, Holati: {status}, Muddati: {t.debt_due_date or 'Nomalum'}]"
             
             desc = f" | Izoh: {t.description}" if t.description else ""
             history_text += f"{i}. {t_type}: {t.amount} UZS | Kategoriya: {cat} | Sana: {t.created_at.strftime('%Y-%m-%d %H:%M')}{debt_status}{desc}\n"

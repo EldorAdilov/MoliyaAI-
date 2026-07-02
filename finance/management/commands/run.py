@@ -19,9 +19,11 @@ class Command(BaseCommand):
             bufsize=1
         )
 
-        # 2. Django Web server jarayonini boshlash
+        # 2. Django Web server jarayonini boshlash (Portni aniqlash)
+        import os
+        port = os.environ.get('PORT', '8000')
         server_process = subprocess.Popen(
-            [sys.executable, 'manage.py', 'runserver'],
+            [sys.executable, 'manage.py', 'runserver', f'0.0.0.0:{port}'],
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,

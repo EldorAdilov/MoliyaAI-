@@ -150,4 +150,7 @@ EMAIL_PORT = env('EMAIL_PORT', cast=int, default=587)
 EMAIL_USE_TLS = env('EMAIL_USE_TLS', cast=bool, default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER', default='')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default=env('EMAIL_HOST_USER', default='no-reply@moliya.ai'))
+DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL', default='')
+if not DEFAULT_FROM_EMAIL:
+    DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_TIMEOUT = 5

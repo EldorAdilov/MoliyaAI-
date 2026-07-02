@@ -1,0 +1,26 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+media/
+local_settings.py
+
+# Environments
+.env
+.venv/
+env/
+venv/
+ENV/
+
+# PyCharm / VS Code
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS files
+.DS_Store
+Thumbs.db

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moliya AI — Tranzaksiyalar Logi</title>
+    <!-- Google Fonts va FontAwesome Ikonkalar -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Plus Jakarta Sans', sans-serif; }
+        body { background: #070a12; color: #ffffff; min-height: 100vh; display: flex; overflow-x: hidden; }
+        .cyber-bg { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; opacity: 0.04; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25'%3E%3Cpath d='M0,150 Q200,80 500,200 T1000,80 T1500,250' fill='none' stroke='%2300f2fe' stroke-width='3'/%3E%3C/svg%3E"); background-size: cover; }
+
+        /* Sidebar */
+        .sidebar { width: 260px; background: rgba(11, 15, 25, 0.6); border-right: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; height: 100vh; position: fixed; left: 0; top: 0; z-index: 10; }
+        .sidebar .logo, .mobile-drawer .logo { font-size: 24px; font-weight: 800; color: #ffffff; text-decoration: none; display: flex; align-items: center; gap: 10px; }
+        .sidebar .logo span, .mobile-drawer .logo span { background: linear-gradient(135deg, #00f2fe, #4facfe); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .sidebar-menu { margin-top: 40px; list-style: none; flex-grow: 1; }
+        .sidebar-menu li a { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: rgba(255, 255, 255, 0.6); text-decoration: none; font-weight: 600; font-size: 14px; border-radius: 12px; transition: 0.3s; margin-bottom: 8px; }
+        .sidebar-menu li a.active, .sidebar-menu li a:hover { background: rgba(255, 255, 255, 0.03); color: #00f2fe; }
+        .sidebar-user { display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+        .user-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #00f2fe, #ff007f); display: flex; justify-content: center; align-items: center; font-weight: 700; }
+        .btn-logout { padding: 6px 10px; background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 8px; color: #ff808b; text-decoration: none; }
+
+        .mobile-nav { display: none; }
+
+        /* Main content */
+        .main-content { margin-left: 260px; width: calc(100% - 260px); padding: 40px; position: relative; z-index: 1; }
+        .header-wrapper h1 { font-size: 28px; font-weight: 800; letter-spacing: -0.5px; }
+        .header-wrapper p { color: rgba(255,255,255,0.4); font-size: 14px; margin-top: 4px; }
+
+        /* Glassmorphism universal bloklar */
+        .glass-block { background: rgba(255, 255, 255, 0.01); border: 1px solid rgba(255, 255, 255, 0.04); border-radius: 24px; padding: 30px; box-shadow: 0 40px 80px rgba(0,0,0,0.3); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); margin-top: 30px; }
+
+        /* Filtrlar Paneli Grid */
+        .filter-form { display: grid; grid-template-columns: 2fr 1fr 1fr 0.5fr; gap: 15px; margin-bottom: 25px; align-items: end; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group label { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; margin-left: 2px; }
+        .inp-custom, .sel-custom { width: 100%; padding: 12px 14px; background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 12px; outline: none; color: #ffffff; font-size: 14px; transition: 0.3s; }
+        .inp-custom:focus, .sel-custom:focus { border-color: #00f2fe; background: rgba(255, 255, 255, 0.04); }
+        .sel-custom option { background: #0c101d; }
+
+        .btn-filter { width: 100%; padding: 12px; background: #ffffff; border: none; border-radius: 12px; color: #070a12; font-size: 14px; font-weight: 700; cursor: pointer; transition: 0.3s; }
+        .btn-filter:hover { background: #00f2fe; color: #ffffff; box-shadow: 0 0 15px rgba(0, 242, 254, 0.3); }
+
+        /* Jadval Stillari */
+        .table-container { width: 100%; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; text-align: left; }
+        th { padding: 14px 12px; font-size: 12px; font-weight: 700; text-uppercase: uppercase; color: rgba(255,255,255,0.3); letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        td { padding: 16px 12px; font-size: 14px; border-bottom: 1px solid rgba(255,255,255,0.03); color: rgba(255,255,255,0.85); }
+        tr:hover td { background: rgba(255,255,255,0.01); }
+
+        .badge-neon { padding: 5px 10px; border-radius: 8px; font-size: 11px; font-weight: 700; text-uppercase: uppercase; display: inline-block; }
+        .badge-neon.in { background: rgba(0, 255, 170, 0.08); color: #00ffaa; border: 1px solid rgba(0, 255, 170, 0.15); }
+        .badge-neon.ex { background: rgba(255, 0, 85, 0.08); color: #ff0055; border: 1px solid rgba(255, 0, 85, 0.15); }
+        .badge-neon.db { background: rgba(255, 193, 7, 0.08); color: #ffc107; text-transform: none; margin-top: 4px; font-weight: 500; }
+
+        /* --- 📱 MOBIL MOSLASHUVCHAN STIL --- */
+        @media (max-width: 850px) {
+            body { flex-direction: column; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: rgba(11, 15, 25, 0.8); border-bottom: 1px solid rgba(255, 255, 255, 0.05); position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px); }
+            .mobile-nav .logo { font-size: 20px; font-weight: 800; color: #ffffff; text-decoration: none; }
+            .mobile-nav .logo span { color: #00f2fe; }
+            .main-content { margin-left: 0; width: 100%; padding: 20px; }
+            .header-wrapper h1 { font-size: 24px; }
+            .glass-block { padding: 20px; border-radius: 16px; }
+            .filter-form { grid-template-columns: 1fr; gap: 12px; }
+            th { display: none; }
+            tr { display: flex; flex-direction: column; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
+            td { padding: 4px 0; border: none; }
+            td:last-child { text-align: left !important; font-size: 16px; font-weight: 800; margin-top: 4px; }
+        }
+
+        /* Mobile Drawer Styles */
+        .mobile-drawer { position: fixed; top: 0; left: -280px; width: 280px; height: 100vh; background: rgba(11, 15, 25, 0.96); border-right: 1px solid rgba(255, 255, 255, 0.05); backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px); z-index: 1000; padding: 30px 20px; display: flex; flex-direction: column; justify-content: space-between; transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1); }
+        .mobile-drawer.open { left: 0; }
+        .drawer-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(5px); -webkit-backdrop-filter: blur(5px); z-index: 999; opacity: 0; pointer-events: none; transition: opacity 0.4s ease; }
+        .drawer-overlay.open { opacity: 1; pointer-events: auto; }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+        .menu-toggle-btn, .close-drawer-btn { background: transparent; border: none; color: #ffffff; font-size: 20px; cursor: pointer; outline: none; transition: 0.2s; }
+        .menu-toggle-btn:hover, .close-drawer-btn:hover { color: #00f2fe; }
+        .drawer-menu { list-style: none; flex-grow: 1; }
+        .drawer-menu li a { display: flex; align-items: center; gap: 12px; padding: 14px 16px; color: rgba(255, 255, 255, 0.6); text-decoration: none; font-weight: 600; font-size: 15px; border-radius: 12px; transition: 0.3s; margin-bottom: 8px; }
+        .drawer-menu li a.active, .drawer-menu li a:hover { background: rgba(255, 255, 255, 0.03); color: #00f2fe; }
+        .drawer-user { display: flex; align-items: center; gap: 12px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.05); }
+
+        /* --- ☀️ LIGHT MODE STYLES --- */
+        .theme-toggle-btn { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); color: #ffffff; width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 16px; transition: 0.3s; backdrop-filter: blur(10px); }
+        .theme-toggle-btn:hover { background: rgba(255,255,255,0.08); border-color: #00f2fe; box-shadow: 0 0 12px rgba(0, 242, 254, 0.2); transform: translateY(-2px); }
+        
+        body.light-mode { background: #f4f6f9; color: #1e293b; }
+        body.light-mode .cyber-bg { opacity: 0.01; filter: invert(1); }
+        body.light-mode .sidebar { background: rgba(255, 255, 255, 0.85); border-right: 1px solid rgba(0,0,0,0.08); }
+        body.light-mode .sidebar .logo, body.light-mode .mobile-drawer .logo { color: #1e293b; }
+        body.light-mode .sidebar-menu li a, body.light-mode .drawer-menu li a { color: rgba(30, 41, 59, 0.6); }
+        body.light-mode .sidebar-menu li a.active, body.light-mode .sidebar-menu li a:hover, body.light-mode .drawer-menu li a.active, body.light-mode .drawer-menu li a:hover { background: rgba(0, 0, 0, 0.03); color: #0088cc; }
+        body.light-mode .sidebar-user, body.light-mode .drawer-user { border-top: 1px solid rgba(0, 0, 0, 0.08); color: #1e293b; }
+        body.light-mode .sidebar-user h4, body.light-mode .drawer-user h4 { color: #1e293b; }
+        body.light-mode .btn-logout { background: rgba(220, 53, 69, 0.05); border-color: rgba(220, 53, 69, 0.15); color: #dc3545; }
+        body.light-mode .header-wrapper h1 { color: #1e293b; }
+        body.light-mode .header-wrapper p { color: rgba(30, 41, 59, 0.6); }
+        body.light-mode .theme-toggle-btn { background: rgba(0,0,0,0.03); border: 1px solid rgba(0,0,0,0.08); color: #1e293b; }
+        body.light-mode .theme-toggle-btn:hover { background: rgba(0,0,0,0.06); border-color: #0088cc; box-shadow: 0 0 10px rgba(0, 136, 204, 0.15); }
+        body.light-mode .neo-card, body.light-mode .chart-box-large, body.light-mode .glass-block, body.light-mode .chart-box-small { background: rgba(255, 255, 255, 0.95); border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 15px 35px rgba(0,0,0,0.04); color: #1e293b; }
+        body.light-mode .neo-card .lbl { color: rgba(30, 41, 59, 0.5); }
+        body.light-mode .block-title, body.light-mode .block-desc { color: #1e293b; }
+        body.light-mode .ai-output-box { background: rgba(0, 0, 0, 0.02); border: 1px solid rgba(0, 0, 0, 0.06); color: #1e293b; }
+        body.light-mode .btn-ai-trigger, body.light-mode .btn-submit, body.light-mode .btn-update { background: linear-gradient(135deg, #0088cc, #00c6ff); color: #ffffff; box-shadow: 0 5px 15px rgba(0, 136, 204, 0.2); }
+        body.light-mode .mobile-nav { background: rgba(255, 255, 255, 0.85); border-bottom: 1px solid rgba(0,0,0,0.08); }
+        body.light-mode .mobile-nav .logo, body.light-mode .menu-toggle-btn, body.light-mode .close-drawer-btn { color: #1e293b; }
+        body.light-mode .mobile-drawer { background: rgba(255, 255, 255, 0.98); border-right: 1px solid rgba(0,0,0,0.08); }
+        body.light-mode .inp-custom, body.light-mode .sel-custom, body.light-mode textarea { background: rgba(0,0,0,0.02); border: 1px solid rgba(0,0,0,0.08); color: #1e293b; }
+        body.light-mode .inp-custom:focus, body.light-mode .sel-custom:focus, body.light-mode textarea:focus { border-color: #0088cc; background: #ffffff; }
+        body.light-mode table { color: #1e293b; }
+        body.light-mode th { background: rgba(0,0,0,0.02); color: rgba(30, 41, 59, 0.7); border-bottom: 2px solid rgba(0,0,0,0.05); }
+        body.light-mode td { border-bottom: 1px solid rgba(0,0,0,0.04); }
+        body.light-mode tr:hover td { background: rgba(0,0,0,0.01); }
+        body.light-mode .badge { background: rgba(0,0,0,0.04); color: #1e293b; }
+        body.light-mode .badge.inc { background: rgba(40, 167, 69, 0.1); color: #28a745; }
+        body.light-mode .badge.exp { background: rgba(220, 53, 69, 0.1); color: #dc3545; }
+        body.light-mode .debt-due-box { background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.15); color: #b58100; }
+        body.light-mode .btn-action.btn-delete { background: rgba(220, 53, 69, 0.08); color: #dc3545; }
+        body.light-mode .btn-action.btn-clear { background: rgba(40, 167, 69, 0.08); color: #28a745; }
+        body.light-mode .wallet-card { background: linear-gradient(135deg, #1e293b, #0f172a); color: #ffffff; }
+        body.light-mode .field-group label { color: rgba(30, 41, 59, 0.6); }
+        body.light-mode .btn-telegram { background: #0088cc; color: #ffffff; }
+        body.light-mode .btn-telegram:hover { background: #0077b3; }
+        body.light-mode .sel-custom option { background: #ffffff; color: #1e293b; }
+        
+        /* Oq rangdagi inline matnlarni avtomatik qoraytirish */
+        body.light-mode [style*="rgba(255,255,255"]:not(.wallet-card *), 
+        body.light-mode [style*="rgba(255, 255, 255"]:not(.wallet-card *),
+        body.light-mode [style*="color:#fff"]:not(.wallet-card *),
+        body.light-mode [style*="color: #fff"]:not(.wallet-card *),
+        body.light-mode [style*="color:white"]:not(.wallet-card *),
+        body.light-mode [style*="color: white"]:not(.wallet-card *) { 
+            color: rgba(30, 41, 59, 0.6) !important; 
+        }
+    </style>
+</head>
+<body>
+
+    <div class="cyber-bg"></div>
+
+    <!-- 📱 MOBIL NAVIGATSIYA -->
+    <div class="mobile-nav">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <button id="menuToggle" class="menu-toggle-btn"><i class="fas fa-bars"></i></button>
+            <a class="logo" href="{% url 'dashboard' %}">⚡ Moliya<span>AI</span></a>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <span style="font-size: 12px; color: rgba(255,255,255,0.6);"><strong>{{ request.user.username }}</strong></span>
+            <a href="{% url 'logout' %}" class="btn-logout" style="padding: 4px 8px; font-size: 12px;"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </div>
+
+    <!-- 📱 MOBIL DRAWER NAVIGATSIYA -->
+    <div class="mobile-drawer" id="mobileDrawer">
+        <div class="drawer-header">
+            <a class="logo" href="{% url 'dashboard' %}">⚡ Moliya<span>AI</span></a>
+            <button id="closeDrawer" class="close-drawer-btn"><i class="fas fa-times"></i></button>
+        </div>
+        <ul class="drawer-menu">
+            <li><a href="{% url 'dashboard' %}"><i class="fas fa-chart-pie"></i> Boshqaruv paneli</a></li>
+            <li><a href="{% url 'wallets' %}"><i class="fas fa-wallet"></i> Hamyonlar</a></li>
+            <li><a href="{% url 'transactions' %}" class="active"><i class="fas fa-exchange-alt"></i> Tranzaksiyalar</a></li>
+            <li><a href="{% url 'debts' %}"><i class="fas fa-handshake"></i> Qarzlarim</a></li>
+            <li><a href="{% url 'settings' %}"><i class="fas fa-sliders-h"></i> Sozlamalar</a></li>
+            <li><a href="{% url 'ai_intelligence' %}"><i class="fas fa-brain"></i> Moliya AI Hub</a></li>
+        </ul>
+        <div class="drawer-user">
+            <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+            <div style="flex-grow: 1;">
+                <h4 style="font-size: 14px; font-weight: 700;">{{ request.user.username }}</h4>
+                <p style="font-size: 11px; color: rgba(255,255,255,0.4);">Premium Client</p>
+            </div>
+            <a href="{% url 'logout' %}" class="btn-logout"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </div>
+    <div class="drawer-overlay" id="drawerOverlay"></div>
+
+    <!-- 💻 DESKTOP SIDEBAR -->
+    <div class="sidebar">
+        <div>
+            <a class="logo" href="{% url 'dashboard' %}">⚡ Moliya<span>AI</span></a>
+            <ul class="sidebar-menu">
+                <li><a href="{% url 'dashboard' %}"><i class="fas fa-chart-pie"></i> Boshqaruv paneli</a></li>
+                <li><a href="{% url 'wallets' %}"><i class="fas fa-wallet"></i> Hamyonlar</a></li>
+                <li><a href="{% url 'transactions' %}" class="active"><i class="fas fa-exchange-alt"></i> Tranzaksiyalar</a></li>
+                <li><a href="{% url 'debts' %}"><i class="fas fa-handshake"></i> Qarzlarim</a></li>
+                <li><a href="{% url 'settings' %}"><i class="fas fa-sliders-h"></i> Sozlamalar</a></li>
+                <li><a href="{% url 'ai_intelligence' %}"><i class="fas fa-brain"></i> Moliya AI Hub</a></li>
+            </ul>
+        </div>
+        <div class="sidebar-user">
+            <div class="user-avatar">{{ request.user.username|slice:":1"|upper }}</div>
+            <div style="flex-grow: 1;">
+                <h4 style="font-size: 14px; font-weight: 700;">{{ request.user.username }}</h4>
+                <p style="font-size: 11px; color: rgba(255,255,255,0.4);">Premium Client</p>
+            </div>
+            <a href="{% url 'logout' %}" class="btn-logout"><i class="fas fa-sign-out-alt"></i></a>
+        </div>
+    </div>
+
+    <!-- Asosiy Kontent Maydoni -->
+    <div class="main-content">
+        <div class="header-wrapper" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px;">
+            <div>
+                <h1 style="margin-top: 0;">Tranzaksiyalar tarixi</h1>
+                <p>Tizimdagi barcha amallarning to'liq va mukammal filtri log jurnali</p>
+            </div>
+            <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()" title="Mavzuni o'zgartirish">
+                <i class="fas fa-sun" id="themeSunIcon" style="display: none;"></i>
+                <i class="fas fa-moon" id="themeMoonIcon"></i>
+            </button>
+        </div>
+
+        <!-- Filtrlar va Jadval bloki -->
+        <div class="glass-block">
+
+            <!-- Dinamik Filtr Formasi -->
+            <form method="GET" action="{% url 'transactions' %}" class="filter-form">
+                <div class="form-group">
+                    <label>Izoh bo'yicha qidirish</label>
+                    <input type="text" name="search" class="inp-custom" placeholder="Izoh kalit so'zini yozing..." value="{{ search_query }}">
+                </div>
+                <div class="form-group">
+                    <label>Amal turi</label>
+                    <select name="type" class="sel-custom">
+                        <option value="">Hamma turlar</option>
+                        <option value="INCOME" {% if type_filter == 'INCOME' %}selected{% endif %}>Kirimlar</option>
+                        <option value="EXPENSE" {% if type_filter == 'EXPENSE' %}selected{% endif %}>Chiqimlar</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Kategoriya</label>
+                    <select name="category" class="sel-custom">
+                        <option value="">Hamma kategoriyalar</option>
+                        {% for cat in categories %}
+                            <option value="{{ cat.name }}" {% if category_filter == cat.name %}selected{% endif %}>{{ cat.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <button type="submit" class="btn-filter"><i class="fas fa-filter"></i> Saralash</button>
+                </div>
+            </form>
+
+            <!-- Jadval Jurnali -->
+            <div class="table-container">
+                {% if not transactions %}
+                    <p style="text-align: center; color: rgba(255,255,255,0.3); padding: 50px 0; font-style: italic;">Siz tanlagan filtrlar bo'yicha hech qanday operatsiya tarixi topilmadi.</p>
+                {% else %}
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sana va Vaqt</th>
+                                <th>Kategoriya</th>
+                                <th>Amal turi</th>
+                                <th>Izoh / Tafsilot</th>
+                                <th style="text-align: right;">Mablag' miqdori</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for t in transactions %}
+                            <tr>
+                                <td style="font-size: 13px; color: rgba(255,255,255,0.4);">{{ t.created_at|date:"d.m.Y H:i" }}</td>
+                                <td>
+                                    <span style="font-weight: 700; letter-spacing: -0.2px;">{{ t.category.name|default:"Boshqa" }}</span>
+                                    {% if t.is_debt %}
+                                        <br><span class="badge-neon db"><i class="far fa-clock"></i> Qarz muddati: {{ t.debt_due_date|date:"d.m.Y" }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if t.transaction_type == 'INCOME' %}
+                                        <span class="badge-neon in">Kirim</span>
+                                    {% else %}
+                                        <span class="badge-neon ex">Chiqim</span>
+                                    {% endif %}
+                                </td>
+                                <td style="color: rgba(255,255,255,0.6); font-size: 13.5px;">{{ t.description|default:"—" }}</td>
+                                <td style="text-align: right; font-weight: 800; font-size: 15px; color: {% if t.transaction_type == 'INCOME' %}#00ffaa{% else %}#ff0055{% endif %};">
+                                    {% if t.transaction_type == 'INCOME' %}+{% else %}-{% endif %}{{ t.amount }} UZS
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // Hamburger menyu logikasi
+        document.addEventListener("DOMContentLoaded", function() {
+            const menuToggle = document.getElementById("menuToggle");
+            const closeDrawer = document.getElementById("closeDrawer");
+            const mobileDrawer = document.getElementById("mobileDrawer");
+            const drawerOverlay = document.getElementById("drawerOverlay");
+
+            if (menuToggle && mobileDrawer && drawerOverlay) {
+                menuToggle.addEventListener("click", function() {
+                    mobileDrawer.classList.add("open");
+                    drawerOverlay.classList.add("open");
+                });
+            }
+
+            if (closeDrawer && drawerOverlay) {
+                closeDrawer.addEventListener("click", function() {
+                    mobileDrawer.classList.remove("open");
+                    drawerOverlay.classList.remove("open");
+                });
+                drawerOverlay.addEventListener("click", function() {
+                    mobileDrawer.classList.remove("open");
+                    drawerOverlay.classList.remove("open");
+                });
+            }
+        });
+
+        // --- 🌙 THEME MANAGEMENT (KUN/TUN) ---
+        function initTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            const body = document.body;
+            const sunIcon = document.getElementById('themeSunIcon');
+            const moonIcon = document.getElementById('themeMoonIcon');
+            
+            if (savedTheme === 'light') {
+                body.classList.add('light-mode');
+                if (sunIcon) sunIcon.style.display = 'inline-block';
+                if (moonIcon) moonIcon.style.display = 'none';
+            } else {
+                body.classList.remove('light-mode');
+                if (sunIcon) sunIcon.style.display = 'none';
+                if (moonIcon) moonIcon.style.display = 'inline-block';
+            }
+        }
+
+        function toggleTheme() {
+            const body = document.body;
+            const sunIcon = document.getElementById('themeSunIcon');
+            const moonIcon = document.getElementById('themeMoonIcon');
+            
+            if (body.classList.contains('light-mode')) {
+                body.classList.remove('light-mode');
+                localStorage.setItem('theme', 'dark');
+                if (sunIcon) sunIcon.style.display = 'none';
+                if (moonIcon) moonIcon.style.display = 'inline-block';
+            } else {
+                body.classList.add('light-mode');
+                localStorage.setItem('theme', 'light');
+                if (sunIcon) sunIcon.style.display = 'inline-block';
+                if (moonIcon) moonIcon.style.display = 'none';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', initTheme);
+    </script>
+</body>
+</html>

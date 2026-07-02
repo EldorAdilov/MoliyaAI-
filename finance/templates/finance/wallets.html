@@ -135,6 +135,75 @@
         body.light-mode [style*="color: white"]:not(.wallet-card *) { 
             color: rgba(30, 41, 59, 0.6) !important; 
         }
+
+        /* --- 📱 BOTTOM NAVIGATION FOR MOBILE --- */
+        .bottom-nav {
+            display: none;
+        }
+
+        @media (max-width: 850px) {
+            .bottom-nav {
+                display: flex;
+                justify-content: space-around;
+                align-items: center;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                height: 65px;
+                background: rgba(11, 15, 25, 0.85);
+                border-top: 1px solid rgba(255, 255, 255, 0.08);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                z-index: 1000;
+                padding-bottom: env(safe-area-inset-bottom);
+            }
+
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                color: rgba(255, 255, 255, 0.5);
+                text-decoration: none;
+                font-size: 11px;
+                font-weight: 500;
+                gap: 4px;
+                flex: 1;
+                height: 100%;
+                transition: 0.3s;
+            }
+
+            .bottom-nav-item i {
+                font-size: 20px;
+            }
+
+            .bottom-nav-item.active {
+                color: #00f2fe;
+                text-shadow: 0 0 10px rgba(0, 242, 254, 0.3);
+            }
+
+            /* Adjust main content padding-bottom so it doesn't get hidden under bottom-nav */
+            .main-content {
+                padding-bottom: 90px !important;
+            }
+            
+            /* Hide the mobile nav drawer hamburger menu toggle since navigation is now at bottom */
+            .menu-toggle-btn {
+                display: none !important;
+            }
+            
+            body.light-mode .bottom-nav {
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid rgba(0, 0, 0, 0.08);
+            }
+            body.light-mode .bottom-nav-item {
+                color: rgba(30, 41, 59, 0.6);
+            }
+            body.light-mode .bottom-nav-item.active {
+                color: #0088cc;
+            }
+        }
     </style>
 </head>
 <body>
@@ -412,5 +481,29 @@
 
         document.addEventListener('DOMContentLoaded', initTheme);
     </script>
+
+    <!-- Mobil qurilmalar uchun pastki menyu (Bottom Navigation) -->
+    <div class="bottom-nav">
+        <a href="{% url 'dashboard' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+            <i class="fa-solid fa-chart-simple"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="{% url 'wallets' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'wallets' %}active{% endif %}">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Hamyonlar</span>
+        </a>
+        <a href="{% url 'transactions' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'transactions' %}active{% endif %}">
+            <i class="fa-solid fa-list"></i>
+            <span>Amallar</span>
+        </a>
+        <a href="{% url 'debts' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'debts' %}active{% endif %}">
+            <i class="fa-solid fa-hand-holding-dollar"></i>
+            <span>Qarzlar</span>
+        </a>
+        <a href="{% url 'ai_intelligence' %}" class="bottom-nav-item {% if request.resolver_match.url_name == 'ai_intelligence' %}active{% endif %}">
+            <i class="fa-solid fa-brain"></i>
+            <span>AI Hub</span>
+        </a>
+    </div>
 </body>
 </html>

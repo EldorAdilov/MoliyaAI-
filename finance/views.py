@@ -834,16 +834,7 @@ def api_summary_view(request):
         'current_balance': float(current_balance)
     })
 
-from django.http import FileResponse
-import os
+from django.shortcuts import redirect
 
 def download_apk_view(request):
-    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    apk_path = os.path.join(project_root, 'MoliyaAI.apk')
-    if os.path.exists(apk_path):
-        response = FileResponse(open(apk_path, 'rb'), content_type='application/vnd.android.package-archive')
-        response['Content-Disposition'] = 'attachment; filename="MoliyaAI.apk"'
-        return response
-    else:
-        from django.http import Http404
-        raise Http404("APK fayli topilmadi")
+    return redirect('https://tmpfiles.org/dl/wVwdbmqSIy90/moliyaai.apk')

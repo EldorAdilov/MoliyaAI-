@@ -114,6 +114,17 @@
         body.light-mode .btn-telegram { background: #0088cc; color: #ffffff; }
         body.light-mode .btn-telegram:hover { background: #0077b3; }
         body.light-mode .sel-custom option { background: #ffffff; color: #1e293b; }
+        body.light-mode .apk-download-box {
+            background: rgba(0, 136, 204, 0.05) !important;
+            border-color: rgba(0, 136, 204, 0.15) !important;
+        }
+        body.light-mode .apk-download-box a {
+            background: #0088cc !important;
+            color: #ffffff !important;
+        }
+        body.light-mode .apk-download-box div {
+            color: rgba(30, 41, 59, 0.7) !important;
+        }
         
         /* Oq rangdagi inline matnlarni avtomatik qoraytirish */
         body.light-mode [style*="rgba(255,255,255"]:not(.wallet-card *), 
@@ -327,13 +338,23 @@
                     <input type="text" name="phone_number" class="inp-custom" placeholder="Masalan: +998901234567" value="{{ profile.phone_number|default:'' }}">
                 </div>
 
-                <div style="background: rgba(0, 136, 204, 0.08); border: 1px solid rgba(0, 136, 204, 0.2); padding: 15px; border-radius: 14px; margin-top: 10px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                <div style="background: rgba(0, 136, 204, 0.08); border: 1px solid rgba(0, 136, 204, 0.2); padding: 15px; border-radius: 14px; margin-top: 10px; margin-bottom: 16px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
                     <div style="font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4;">
                         <i class="fab fa-telegram" style="color: #0088cc; font-size: 18px; margin-right: 5px;"></i>
                         Telefon raqamingizni saqlagandan so'ng, hisobingizni faollashtirish uchun botimizga o'ting:
                     </div>
                     <a href="https://t.me/moliaaibot_bot" target="_blank" style="padding: 10px 16px; background: #0088cc; color: #ffffff; text-decoration: none; border-radius: 10px; font-size: 12.5px; font-weight: 700; white-space: nowrap; transition: 0.3s;" onmouseover="this.style.background='#00a2e8'" onmouseout="this.style.background='#0088cc'">
                         <i class="fab fa-telegram-plane"></i> Botga o'tish
+                    </a>
+                </div>
+
+                <div class="apk-download-box" style="background: rgba(0, 242, 254, 0.08); border: 1px solid rgba(0, 242, 254, 0.2); padding: 15px; border-radius: 14px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap;">
+                    <div style="font-size: 13px; color: rgba(255,255,255,0.7); line-height: 1.4;">
+                        <i class="fas fa-mobile-alt" style="color: #00f2fe; font-size: 18px; margin-right: 5px;"></i>
+                        MoliyaAI premium native mobil ilovasini yuklab olishni istaysizmi?
+                    </div>
+                    <a href="/download-apk/" style="padding: 10px 16px; background: #00f2fe; color: #070a12; text-decoration: none; border-radius: 10px; font-size: 12.5px; font-weight: 800; white-space: nowrap; transition: 0.3s;" onmouseover="this.style.background='#00c6ff'" onmouseout="this.style.background='#00f2fe'">
+                        <i class="fas fa-download"></i> Ilovani yuklab olish
                     </a>
                 </div>
 

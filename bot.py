@@ -67,7 +67,8 @@ def start_command(message):
         welcome_text = (
             "⚡ *MoliyaAI tizimiga xush kelibsiz!*\n\n"
             "Ushbu bot yordamida moliyaviy hisoblaringizni boshqarishingiz va AI tahlillarini olishingiz mumkin.\n\n"
-            "⚠️ *Muhim:* Botdan foydalanish uchun avval web sahifamizda ro'yxatdan o'tgan bo'lishingiz va Sozlamalar bo'limida telefon raqamingizni kiritgan bo'lishingiz lozim.\n\n"
+            "🌐 *Web sahifa manzili:* https://moliya.upcode.uz\n\n"
+            "⚠️ *Muhim:* Botdan foydalanish uchun avval web sahifada ro'yxatdan o'tgan bo'lishingiz va Sozlamalar bo'limida telefon raqamingizni kiritgan bo'lishingiz lozim.\n\n"
             "Davom etish uchun quyidagi tugma orqali kontaktingizni yuboring:"
         )
         bot.send_message(chat_id, welcome_text, reply_markup=markup, parse_mode="Markdown")
@@ -98,7 +99,8 @@ def handle_contact(message):
         bot.send_message(
             chat_id,
             "❌ *Akkaunt topilmadi.*\n\n"
-            "Siz kiritgan telefon raqami web-tizimda ro'yxatdan o'tkazilmagan.\n"
+            "Siz kiritgan telefon raqami web-tizimda ro'yxatdan o'tkazilmagan.\n\n"
+            "🌐 *Web sahifa manzili:* https://moliya.upcode.uz\n"
             "Iltimos, web ilovaga kirib, *Sozlamalar* bo'limidan telefon raqamingizni to'g'ri kiriting va qayta urinib ko'ring.",
             parse_mode="Markdown"
         )

@@ -648,3 +648,129 @@ def forget_password_view(request):
         'reset_email': request.session.get('reset_email', ''),
     }
     return render(request, 'finance/forget_password.html', context)
+
+
+# ==========================================
+# 📱 MOBILE APP API ENDPOINTS (NATIVE APP)
+# ==========================================
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.models import User
+from .models import Transaction, Category
+
+@csrf_exempt
+def api_login_view(request):
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'error': 'Method not allowed'}, status=405)
+    try:
+        data = json.loads(request.body)
+        username = data.get('username')
+        password = data.get('password')
+        
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return JsonResponse({
+                'success': True,
+                'username': user.username,
+                'email': user.email,
+                'user_id': user.id
+            })
+        else:
+            return JsonResponse({'success': False, 'error': 'Xato username yoki parol!'}, status=400)
+    except Exception as e:
+        return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+def api_transactions_view(request):
+    user = request.user
+    if not user.is_authenticated:
+        user_id = request.headers.get('X-User-ID') or request.GET.get('user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Foydalanuvchi topilmadi'}, status=401)
+        else:
+            return JsonResponse({'success': False, 'error': 'Avtorizatsiyadan o\'tilmagan'}, status=401)
+            
+    if request.method == 'GET':
+        transactions = Transaction.objects.filter(user=user).order_by('-created_at')
+        data = []
+        for t in transactions:
+            data.append({
+                'id': t.id,
+                'amount': float(t.amount),
+                'transaction_type': t.transaction_type,
+                'category': t.category.name if t.category else 'Boshqa',
+                'created_at': t.created_at.strftime('%Y-%m-%d %H:%M'),
+                'description': t.description or '',
+                'is_debt': t.is_debt,
+                'debtor_creditor': t.debtor_creditor or '',
+                'is_debt_cleared': t.is_debt_cleared
+            })
+        return JsonResponse({'success': True, 'transactions': data})
+        
+    elif request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            amount = float(data.get('amount'))
+            t_type = data.get('transaction_type') # 'INCOME' or 'EXPENSE'
+            category_name = data.get('category')
+            description = data.get('description', '')
+            
+            category = None
+            if category_name:
+                is_income = (t_type == 'INCOME')
+                category, _ = Category.objects.get_or_create(
+                    user=user,
+                    name=category_name,
+                    is_income=is_income
+                )
+            
+            t = Transaction.objects.create(
+                user=user,
+                category=category,
+                amount=amount,
+                transaction_type=t_type,
+                description=description
+            )
+            return JsonResponse({
+                'success': True,
+                'transaction': {
+                    'id': t.id,
+                    'amount': float(t.amount),
+                    'transaction_type': t.transaction_type,
+                    'category': t.category.name if t.category else 'Boshqa',
+                    'created_at': t.created_at.strftime('%Y-%m-%d %H:%M')
+                }
+            })
+        except Exception as e:
+            return JsonResponse({'success': False, 'error': str(e)}, status=500)
+
+@csrf_exempt
+def api_summary_view(request):
+    user = request.user
+    if not user.is_authenticated:
+        user_id = request.headers.get('X-User-ID') or request.GET.get('user_id')
+        if user_id:
+            try:
+                user = User.objects.get(id=user_id)
+            except User.DoesNotExist:
+                return JsonResponse({'success': False, 'error': 'Foydalanuvchi topilmadi'}, status=401)
+        else:
+            return JsonResponse({'success': False, 'error': 'Avtorizatsiyadan o\'tilmagan'}, status=401)
+            
+    transactions = Transaction.objects.filter(user=user)
+    total_income = sum(t.amount for t in transactions if t.transaction_type == 'INCOME')
+    total_expense = sum(t.amount for t in transactions if t.transaction_type == 'EXPENSE')
+    current_balance = total_income - total_expense
+    
+    return JsonResponse({
+        'success': True,
+        'total_income': float(total_income),
+        'total_expense': float(total_expense),
+        'current_balance': float(current_balance)
+    })

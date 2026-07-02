@@ -326,7 +326,7 @@ def build_ai_history_context(user, profile, transactions, total_income, total_ex
         f"- Sof balans (Kirim - Chiqim): {current_balance} UZS\n\n"
         f"Barcha operatsiyalar logi (Eski va yangi amallar):\n"
     )
-    for i, t in enumerate(transactions.order_by('date'), 1):
+    for i, t in enumerate(transactions.order_by('created_at'), 1):
         cat = t.category.name if t.category else "Boshqa"
         t_type = "Kirim" if t.transaction_type == 'INCOME' else "Chiqim"
         debt_status = ""
@@ -335,7 +335,7 @@ def build_ai_history_context(user, profile, transactions, total_income, total_ex
             debt_status = f" | [QARZ: {status}, Kimga/Kimdan: {t.debtor_creditor or 'Nomalum'}, Muddati: {t.debt_due_date or 'Nomalum'}]"
         
         desc = f" | Izoh: {t.description}" if t.description else ""
-        history_text += f"{i}. {t_type}: {t.amount} UZS | Kategoriya: {cat} | Sana: {t.date.strftime('%Y-%m-%d %H:%M')}{debt_status}{desc}\n"
+        history_text += f"{i}. {t_type}: {t.amount} UZS | Kategoriya: {cat} | Sana: {t.created_at.strftime('%Y-%m-%d %H:%M')}{debt_status}{desc}\n"
         
     return history_text
 
